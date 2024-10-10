@@ -1,15 +1,5 @@
 // Stand-alone test inside program block
-program testcase(//Inputs to Design, Outputs from Program <-- Signals are to be driven inside Progam Block
-				 input wire clk,
-  				 output logic reset,
-  				 output logic we_sys,
-  				 output logic cmd_valid_sys,
-  				 output logic [7:0] addr_sys,
-                 //Inout to/from Design, inout to/from Programa <-- Signals are to be driven inside Program
-  				 ref    logic [7:0]	data_sys,
-                 //Output from Design, Input to Program <-- Signals are to be monitored
-				 input logic ready_sys
-                );
+program testcase(interface tcif);
   
    // Keep count of READ and WRITE opertaions for final block
    int write_count = 0;
@@ -22,8 +12,8 @@ program testcase(//Inputs to Design, Outputs from Program <-- Signals are to be 
    // Monitor bus activity for ending Simulation
    task automatic check_bus_activity;
      forever begin
-       @(posedge clk);
-        if (cmd_valid_sys || ready_sys || we_sys || (data_sys !== 8'bz)) begin
+       @(posedge tcif.clk);
+       if (tcif.cmd_valid_sys || tcif.ready_sys || tcif.we_sys || (tcif.data_sys !== 8'bz)) begin
                 idle_cycles = 0;
             end else begin
                 idle_cycles++;
@@ -41,12 +31,12 @@ program testcase(//Inputs to Design, Outputs from Program <-- Signals are to be 
      
   
    initial begin
-     reset = 			1;
-     we_sys = 			0;
-     cmd_valid_sys = 	0;
-     addr_sys = 		0;
-     data_sys = 		8'bz;
-     #100 reset = 		0;
+     tcif.reset = 			1;
+     tcif.we_sys = 			0;
+     tcif.cmd_valid_sys = 	0;
+     tcif.addr_sys = 		0;
+     tcif.data_sys = 		8'bz;
+     #100 tcif.reset = 		0;
      
      // Start the bus activity monitoring
      fork
@@ -54,42 +44,42 @@ program testcase(//Inputs to Design, Outputs from Program <-- Signals are to be 
      join_none
      
      for (int i = 0; i < 4; i++) begin
-       @(posedge clk);
-       addr_sys = 		i;
-       data_sys = 		$urandom_range(0,255);
-       cmd_valid_sys = 	1;
-       we_sys = 		1;
+       @(posedge tcif.clk);
+       tcif.addr_sys = 		i;
+       tcif.data_sys = 		$urandom_range(0,255);
+       tcif.cmd_valid_sys = 	1;
+       tcif.we_sys = 		1;
        write_count++;
        
-       @(posedge ready_sys);
-       $display("%5dns: Writing: address=%0d, write data=8'h%2h", $time, i, data_sys);
+       @(posedge tcif.ready_sys);
+       $display("%5dns: Writing: address=%0d, write data=8'h%2h", $time, i, tcif.data_sys);
        
-       @(posedge clk);
-       addr_sys = 		0;
-       data_sys = 		8'bz;
-       cmd_valid_sys = 	0;
-       we_sys = 		0;
+       @(posedge tcif.clk);
+       tcif.addr_sys = 		0;
+       tcif.data_sys = 		8'bz;
+       tcif.cmd_valid_sys = 	0;
+       tcif.we_sys = 		0;
      end
      
      $display("\n");
      
-     repeat(10) @(posedge clk);
+     repeat(10) @(posedge tcif.clk);
      for (int i = 0; i < 4; i++) begin
-       @(posedge clk);
-       addr_sys = i;
-       cmd_valid_sys = 1;
-       we_sys = 0;
+       @(posedge tcif.clk);
+       tcif.addr_sys = i;
+       tcif.cmd_valid_sys = 1;
+       tcif.we_sys = 0;
        read_count++;
        
-       @(posedge ready_sys);
-       @(posedge clk);
-       $display("%5dns: Reading: address=%0d, read data=8'h%2h", $time, i, data_sys);
+       @(posedge tcif.ready_sys);
+       @(posedge tcif.clk);
+       $display("%5dns: Reading: address=%0d, read data=8'h%2h", $time, i, tcif.data_sys);
        
-       addr_sys = 0;
-       cmd_valid_sys = 0;
+       tcif.addr_sys = 0;
+       tcif.cmd_valid_sys = 0;
      end
      
-     repeat(150) @(posedge clk);
+     repeat(150) @(posedge tcif.clk);
      
    end
   

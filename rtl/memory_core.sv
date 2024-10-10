@@ -1,14 +1,4 @@
-module memory_core (//Inputs
-                    input  bit		clk,
-                    input  logic 	reset,
-                    input  logic	we_mem,
-                    input  logic	ce_mem,
-                    input  logic [7:0]	addr_mem,
-                    input  logic [7:0]	datai_mem,
-
-                    //output
-                    output logic [7:0] 	datao_mem
-                   );
+module memory_core (interface coreif);
 
 
    // Memory array
@@ -17,17 +7,17 @@ module memory_core (//Inputs
    //=================================================
    // Write Logic
    //=================================================
-   always @ (posedge clk)
-    if (ce_mem && we_mem) begin
-      mem[addr_mem] <= datai_mem;
+  always @ (posedge coreif.clk)
+     if (coreif.ce_mem && coreif.we_mem) begin
+       mem[coreif.addr_mem] <= coreif.datai_mem;
     end
 
    //=================================================
    // Read Logic
    //=================================================
-   always @ (posedge clk)
-    if (ce_mem && ~we_mem)  begin
-      datao_mem <= mem[addr_mem];
+  always @ (posedge coreif.clk)
+     if (coreif.ce_mem && ~coreif.we_mem)  begin
+       coreif.datao_mem <= mem[coreif.addr_mem];
     end
 
 endmodule

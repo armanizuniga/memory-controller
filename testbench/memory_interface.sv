@@ -2,7 +2,7 @@ interface memory_interface(input clk);
   //System Signal wire bundle
   logic reset;
   logic we_sys;
-  logic cmd_valid_sysl;
+  logic cmd_valid_sys;
   logic [7:0] addr_sys;
   logic [7:0] data_sys;
   logic ready_sys;
@@ -21,12 +21,12 @@ interface memory_interface(input clk);
   
   // Modport for the memory controller
   modport ctrl_port(input clk, reset, we_sys, cmd_valid_sys, addr_sys, datao_mem,
-                    output we_mem, ce_mem, addr_mem, datai_mem, ready_sys
+                    output we_mem, ce_mem, addr_mem, datai_mem, ready_sys,
                     inout data_sys
                    );
   
   // Modport for the testcase 
-  modport tescase_port(input clk, ready_sys,
+  modport testcase_port(input clk, ready_sys,
                        output we_sys, cmd_valid_sys, addr_sys, reset,
                        inout data_sys
                       );
